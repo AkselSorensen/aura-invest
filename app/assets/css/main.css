@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark: #0A0A0F;
+  --color-dark-800: #0D0D14;
+  --color-surface: #111118;
+  --color-surface-700: #16161F;
+  --color-surface-600: #1C1C26;
+  --color-surface-500: #252533;
+  --color-gold: #C9A84C;
+  --color-gold-400: #D4B96A;
+  --color-gold-300: #DFCA88;
+  --color-gold-600: #B8973A;
+  --color-text: #F1F1F3;
+  --color-text-600: #A1A1AA;
+  --color-text-700: #71717A;
+  --color-success: #22C55E;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-dark);
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fallback utility classes */
+.bg-dark { background-color: #0A0A0F; }
+.bg-surface { background-color: #111118; }
+.bg-surface-700 { background-color: #16161F; }
+.bg-surface-600 { background-color: #1C1C26; }
+.bg-surface-500 { background-color: #252533; }
+.text-gold { color: #C9A84C; }
+.text-text { color: #F1F1F3; }
+.text-text-600 { color: #A1A1AA; }
+.text-text-700 { color: #71717A; }
+.border-gold\/10 { border-color: rgba(201, 168, 76, 0.10); }
+.border-gold\/20 { border-color: rgba(201, 168, 76, 0.20); }
+.border-gold\/30 { border-color: rgba(201, 168, 76, 0.30); }
+.border-surface-500 { border-color: #252533; }
+.bg-gold { background-color: #C9A84C; }
+.bg-gold\/5 { background-color: rgba(201, 168, 76, 0.05); }
+.bg-gold\/10 { background-color: rgba(201, 168, 76, 0.10); }
+.bg-gold\/20 { background-color: rgba(201, 168, 76, 0.20); }
+.hover\:bg-gold\/10:hover { background-color: rgba(201, 168, 76, 0.10); }
+.hover\:bg-gold\/20:hover { background-color: rgba(201, 168, 76, 0.20); }
+.hover\:bg-surface-500:hover { background-color: #252533; }
+.hover\:text-gold:hover { color: #C9A84C; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0A0A0F; }
+::-webkit-scrollbar-thumb { background: #252533; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #353550; }
+
+/* Glass card */
+.glass {
+  background: rgba(17, 17, 24, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+}
+.glass-lg {
+  background: rgba(17, 17, 24, 0.8);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+}
