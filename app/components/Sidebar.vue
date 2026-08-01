@@ -76,7 +76,6 @@ const navItems = [
   { to: '/investments', label: 'Mes investissements', icon: 'lucide:briefcase' },
   { to: '/investments/private-equity', label: 'Private Equity', icon: 'lucide:briefcase' },
   { to: '/vault', label: 'Coffre-fort', icon: 'lucide:vault' },
-  { to: '/dividends', label: 'Dividendes', icon: 'lucide:hand-coins' },
   { to: '/goals', label: 'Objectifs', icon: 'lucide:target' },
   { to: '/reports', label: 'Rapports', icon: 'lucide:bar-chart-3' },
   { to: '/activity', label: 'Activité', icon: 'lucide:history' },

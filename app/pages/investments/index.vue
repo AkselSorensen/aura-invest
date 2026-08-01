@@ -25,6 +25,26 @@
         </button>
       </div>
 
+      <!-- Dividend KPIs -->
+      <div v-if="dividendStocks.length > 0" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="glass p-3">
+          <div class="text-text-600 text-[10px] uppercase tracking-wider mb-0.5">Revenu annuel</div>
+          <div class="text-lg font-bold text-green-400">{{ formatCurrency(totalDividends) }}</div>
+        </div>
+        <div class="glass p-3">
+          <div class="text-text-600 text-[10px] uppercase tracking-wider mb-0.5">Rendement moyen</div>
+          <div class="text-lg font-bold text-text">{{ avgYield.toFixed(2) }}%</div>
+        </div>
+        <div class="glass p-3">
+          <div class="text-text-600 text-[10px] uppercase tracking-wider mb-0.5">Mensuel</div>
+          <div class="text-lg font-bold text-text">{{ formatCurrency(totalDividends / 12) }}</div>
+        </div>
+        <div class="glass p-3">
+          <div class="text-text-600 text-[10px] uppercase tracking-wider mb-0.5">Positions</div>
+          <div class="text-lg font-bold text-text">{{ dividendStocks.length }}</div>
+        </div>
+      </div>
+
       <!-- Category filters -->
       <div class="flex gap-2 mb-6 overflow-x-auto pb-1" v-if="categories.length > 0">
         <button
@@ -149,6 +169,14 @@ const totalValue = computed(() => investments.value.reduce((sum, inv) => sum + N
 const filteredInvestments = computed(() => {
   if (!activeCategory.value) return investments.value
   return investments.value.filter(inv => inv.category_slug === activeCategory.value)
+})
+
+const dividendStocks = computed(() => investments.value.filter((i: any) => i.category_slug === 'actions-etf'))
+const totalDividends = computed(() => dividendStocks.value.reduce((s: number, i: any) => s + Number(i.dividend_amount || (Number(i.current_value) * (i.dividend_yield || 0) / 100)), 0))
+const avgYield = computed(() => {
+  const withYield = dividendStocks.value.filter((s: any) => (s.dividend_yield || 0) > 0)
+  if (withYield.length === 0) return 0
+  return withYield.reduce((s: number, i: any) => s + Number(i.dividend_yield || 0), 0) / withYield.length
 })
 
 function formatCurrency(val: number): string {

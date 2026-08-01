@@ -16,10 +16,29 @@
         <form @submit.prevent="handleSubmit" class="p-5 space-y-4">
           <!-- Nom + Catégorie -->
           <div class="grid grid-cols-2 gap-3">
-            <div>
+            <div class="relative">
               <label class="block text-sm text-text-600 mb-1.5">Nom *</label>
               <input v-model="form.name" required placeholder="Apple, Appartement Paris, Bitcoin..."
-                class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text placeholder-text-700 focus:outline-none focus:border-gold/40 transition-colors text-sm" />
+                class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text placeholder-text-700 focus:outline-none focus:border-gold/40 transition-colors text-sm"
+                @input="onNameInput" />
+              <!-- Autocomplete dropdown -->
+              <div v-if="showAutocomplete && searchResults.length > 0" class="absolute top-full left-0 right-0 z-50 mt-1 bg-surface-600 border border-surface-500 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                <button v-for="r in searchResults" :key="r.symbol" type="button"
+                  @click="selectStock(r)"
+                  class="w-full text-left px-4 py-2.5 hover:bg-surface-500 transition-colors flex items-center justify-between text-sm">
+                  <div>
+                    <div class="text-text font-medium">{{ r.name }}</div>
+                    <div class="text-text-700 text-xs">{{ r.symbol }} · {{ r.exchange }}</div>
+                  </div>
+                  <div class="text-right shrink-0 ml-3">
+                    <div v-if="r.price" class="text-text text-sm">{{ r.price.toFixed(2) }} {{ r.currency }}</div>
+                    <div v-if="r.changePercent" class="text-xs" :class="r.changePercent >= 0 ? 'text-green-400' : 'text-red-400'">{{ r.changePercent >= 0 ? '+' : '' }}{{ r.changePercent.toFixed(2) }}%</div>
+                  </div>
+                </button>
+              </div>
+              <div v-if="searching" class="absolute top-full left-0 right-0 z-50 mt-1 bg-surface-600 border border-surface-500 rounded-lg p-3 text-center text-text-700 text-xs">
+                <Icon icon="lucide:loader" class="w-3 h-3 animate-spin inline mr-1" /> Recherche...
+              </div>
             </div>
             <div>
               <label class="block text-sm text-text-600 mb-1.5">Catégorie</label>
@@ -174,6 +193,10 @@ const uploading = ref(false)
 const submitting = ref(false)
 const error = ref('')
 const metadata = ref<Record<string, any>>({})
+const searchResults = ref<any[]>([])
+const showAutocomplete = ref(false)
+const searching = ref(false)
+let searchTimer: any = null
 
 const form = ref({
   name: props.editData?.name || '',
@@ -193,6 +216,30 @@ const activeSchema = computed(() => {
   if (!activeCategorySlug.value) return null
   return CATEGORY_SCHEMAS[activeCategorySlug.value] || null
 })
+
+function onNameInput() {
+  const val = form.value.name?.trim()
+  if (!val || val.length < 2) { showAutocomplete.value = false; return }
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(async () => {
+    searching.value = true
+    try {
+      const res = await $fetch(`/api/search/stock?q=${encodeURIComponent(val)}`)
+      searchResults.value = (res as any).results || []
+      showAutocomplete.value = searchResults.value.length > 0
+    } catch { searchResults.value = [] }
+    finally { searching.value = false }
+  }, 300)
+}
+
+function selectStock(r: any) {
+  form.value.name = r.name
+  showAutocomplete.value = false
+  // Auto-fill price (current market price) but NOT purchase price (user enters that)
+  if (r.price) form.value.current_value = (r.price * (form.value.quantity || 1))
+  // Store ticker in metadata
+  metadata.value = { ...metadata.value, ticker: r.symbol, market: r.exchange }
+}
 
 function onCategoryChange() {
   const cat = categories.value.find(c => c.id === parseInt(String(form.value.category_id)))
