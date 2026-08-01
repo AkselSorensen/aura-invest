@@ -58,10 +58,9 @@
       <!-- Grid -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <div v-for="(item, i) in filteredItems" :key="item.id"
-          class="glass overflow-hidden cursor-pointer hover:border-gold/20 transition-all group hover:-translate-y-0.5"
-          @click="navigateTo(`/vault/${item.id}`)">
+          class="glass overflow-hidden transition-all group hover:-translate-y-0.5 relative">
           <!-- Image -->
-          <div class="w-full aspect-[4/3] bg-surface-500 overflow-hidden relative">
+          <div class="w-full aspect-[4/3] bg-surface-500 overflow-hidden relative cursor-pointer" @click="navigateTo(`/vault/${item.id}`)">
             <img v-if="item.images && item.images.length > 0" :src="item.images[0].url" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             <Icon v-else :icon="getCatIcon(item.category)" class="w-12 h-12 absolute inset-0 m-auto opacity-15" :style="{ color: getCatColor(item.category) }" />
             <!-- Image count badge -->
@@ -77,9 +76,21 @@
             <div v-if="item.sold" class="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/30 backdrop-blur-sm text-[10px] text-green-300 font-medium">
               <Icon icon="lucide:badge-check" class="w-3 h-3" /> Vendu
             </div>
+            <!-- Quick actions overlay (appears on hover) -->
+            <div class="absolute inset-0 bg-dark/0 group-hover:bg-dark/60 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100" @click.stop>
+              <button v-if="!item.sold" @click="quickSell(item)" title="Vendre" class="w-9 h-9 rounded-full bg-green-500/80 flex items-center justify-center hover:bg-green-500 transition-colors">
+                <Icon icon="lucide:hand-coins" class="w-4 h-4 text-white" />
+              </button>
+              <button v-if="!item.sold" @click="editItem(item)" title="Modifier" class="w-9 h-9 rounded-full bg-blue-500/80 flex items-center justify-center hover:bg-blue-500 transition-colors">
+                <Icon icon="lucide:pencil" class="w-4 h-4 text-white" />
+              </button>
+              <button @click="deleteItem(item)" title="Supprimer" class="w-9 h-9 rounded-full bg-red-500/80 flex items-center justify-center hover:bg-red-500 transition-colors">
+                <Icon icon="lucide:trash-2" class="w-4 h-4 text-white" />
+              </button>
+            </div>
           </div>
           <!-- Info -->
-          <div class="p-4">
+          <div class="p-4 cursor-pointer" @click="navigateTo(`/vault/${item.id}`)">
             <div class="flex items-start justify-between gap-2 mb-1">
               <h3 class="font-semibold text-text truncate text-[15px]">{{ item.name }}</h3>
             </div>
@@ -98,7 +109,35 @@
       </div>
 
       <!-- Form modal -->
-      <VaultForm v-if="showForm" @close="showForm = false; refresh()" />
+      <VaultForm v-if="showForm" :edit-data="editData" @close="showForm = false; editData = null; refresh()" />
+
+      <!-- Quick sell modal -->
+      <Teleport to="body">
+        <div v-if="sellTarget" class="fixed inset-0 z-[110] flex items-center justify-center p-4" @click.self="sellTarget = null">
+          <div class="absolute inset-0 bg-dark/80 backdrop-blur-sm" />
+          <div class="glass-lg w-full max-w-sm relative z-10 p-6">
+            <h3 class="text-lg font-semibold text-text mb-1">Vendre {{ sellTarget.name }}</h3>
+            <p class="text-text-600 text-sm mb-4">Prix d'achat : {{ formatCurrency(sellTarget.acquisition_price) }}</p>
+            <div class="mb-4">
+              <label class="block text-sm text-text-600 mb-1.5">Prix de vente (€)</label>
+              <input v-model.number="quickSellPrice" type="number" min="0" step="any" placeholder="10 000"
+                class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text text-lg focus:outline-none focus:border-green-400/40" />
+            </div>
+            <div v-if="quickSellPrice > 0 && sellTarget.acquisition_price" class="mb-4 p-3 rounded-lg bg-surface-500 text-sm">
+              <span class="text-text-600">Plus-value : </span>
+              <span class="font-bold" :class="quickSellPrice - Number(sellTarget.acquisition_price) >= 0 ? 'text-green-400' : 'text-red-400'">
+                {{ formatCurrency(quickSellPrice - Number(sellTarget.acquisition_price)) }}
+              </span>
+            </div>
+            <div class="flex gap-3">
+              <button @click="sellTarget = null" class="flex-1 py-2.5 border border-surface-500 text-text-600 rounded-lg hover:text-text text-sm">Annuler</button>
+              <button @click="confirmQuickSell" :disabled="!quickSellPrice" class="flex-1 py-2.5 bg-green-500/20 border border-green-500/30 text-green-400 font-semibold rounded-lg hover:bg-green-500/30 text-sm disabled:opacity-50">
+                Confirmer la vente
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
   </NuxtLayout>
 </template>
@@ -113,6 +152,9 @@ const pageRef = ref<HTMLElement | null>(null)
 const items = ref<any[]>([])
 const activeCategory = ref('')
 const showForm = ref(false)
+const editData = ref<any>(null)
+const sellTarget = ref<any>(null)
+const quickSellPrice = ref(0)
 
 const categories = [
   { name: 'Montres', slug: 'watches', icon: 'lucide:watch', color: '#C9A84C' },
@@ -154,6 +196,35 @@ async function refresh() {
   try {
     items.value = await $fetch('/api/vault/items', { credentials: 'include' }) as any[]
   } catch {}
+}
+
+function editItem(item: any) {
+  editData.value = item
+  showForm.value = true
+}
+
+function quickSell(item: any) {
+  sellTarget.value = item
+  quickSellPrice.value = item.current_value || item.acquisition_price || 0
+}
+
+async function confirmQuickSell() {
+  if (!sellTarget.value || !quickSellPrice.value) return
+  try {
+    await $fetch(`/api/vault/items/${sellTarget.value.id}`, {
+      method: 'PUT', body: { sold: true, sold_price: quickSellPrice.value, sold_date: new Date().toISOString().split('T')[0] },
+      credentials: 'include'
+    })
+    sellTarget.value = null
+    await refresh()
+  } catch (e: any) { alert(e.statusMessage || 'Erreur') }
+}
+
+async function deleteItem(item: any) {
+  if (confirm(`Supprimer "${item.name}" du coffre-fort ?`)) {
+    await $fetch(`/api/vault/items/${item.id}`, { method: 'DELETE', credentials: 'include' })
+    await refresh()
+  }
 }
 
 onMounted(async () => {
