@@ -25,10 +25,14 @@
               <div v-if="showAutocomplete && searchResults.length > 0" class="absolute top-full left-0 right-0 z-50 mt-1 bg-surface-600 border border-surface-500 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                 <button v-for="r in searchResults" :key="r.symbol" type="button"
                   @click="selectStock(r)"
-                  class="w-full text-left px-4 py-2.5 hover:bg-surface-500 transition-colors flex items-center justify-between text-sm">
-                  <div>
-                    <div class="text-text font-medium">{{ r.name }}</div>
-                    <div class="text-text-700 text-xs">{{ r.symbol }} · {{ r.exchange }}</div>
+                  class="w-full text-left px-4 py-2.5 hover:bg-surface-500 transition-colors flex items-center justify-between text-sm border-b border-surface-500 last:border-0">
+                  <div class="min-w-0 flex-1">
+                    <div class="text-text font-medium truncate">{{ r.name }}</div>
+                    <div class="flex items-center gap-2 text-xs text-text-700 mt-0.5">
+                      <span>{{ r.symbol }} · {{ r.exchange }}</span>
+                      <span v-if="r.isin" class="text-text-700/60">{{ r.isin }}</span>
+                      <span v-if="r.dividendYield" class="text-green-400 font-medium">Rend. {{ r.dividendYield.toFixed(2) }}%</span>
+                    </div>
                   </div>
                   <div class="text-right shrink-0 ml-3">
                     <div v-if="r.price" class="text-text text-sm">{{ r.price.toFixed(2) }} {{ r.currency }}</div>
@@ -235,10 +239,15 @@ function onNameInput() {
 function selectStock(r: any) {
   form.value.name = r.name
   showAutocomplete.value = false
-  // Auto-fill price (current market price) but NOT purchase price (user enters that)
   if (r.price) form.value.current_value = (r.price * (form.value.quantity || 1))
-  // Store ticker in metadata
-  metadata.value = { ...metadata.value, ticker: r.symbol, market: r.exchange }
+  metadata.value = {
+    ...metadata.value,
+    ticker: r.symbol,
+    isin: r.isin || metadata.value.isin || '',
+    market: r.exchange,
+    dividend_yield: r.dividendYield || metadata.value.dividend_yield || null,
+    current_price: r.price,
+  }
 }
 
 function onCategoryChange() {

@@ -14,17 +14,39 @@ export default defineEventHandler(async (event) => {
       r.quoteType === 'EQUITY' || r.quoteType === 'ETF'
     )
 
-    const results = quotes.map((r: any) => ({
-      symbol: r.symbol,
-      name: r.shortname || r.longname || r.symbol,
-      exchange: r.exchange,
-      market: r.exchange,
-      type: r.quoteType,
-      price: r.regularMarketPrice || null,
-      currency: r.currency || 'EUR',
-      change: r.regularMarketChange || null,
-      changePercent: r.regularMarketChangePercent || null,
-    }))
+    // Get symbols for bulk quote
+    const symbols = quotes.map((r: any) => r.symbol).join(',')
+
+    let quoteData: Record<string, any> = {}
+    if (symbols) {
+      try {
+        const quoteUrl = `https://query1.finance.yahoo.com/v6/finance/quote?symbols=${encodeURIComponent(symbols)}`
+        const quoteRes = await $fetch<any>(quoteUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        })
+        const results = quoteRes?.quoteResponse?.result || []
+        for (const r of results) {
+          quoteData[r.symbol] = r
+        }
+      } catch {}
+    }
+
+    const results = quotes.map((r: any) => {
+      const qd = quoteData[r.symbol] || {}
+      return {
+        symbol: r.symbol,
+        name: r.shortname || r.longname || r.symbol,
+        exchange: r.exchange,
+        market: r.exchange,
+        type: r.quoteType,
+        price: qd.regularMarketPrice || r.regularMarketPrice || null,
+        currency: qd.currency || r.currency || 'EUR',
+        change: qd.regularMarketChange || r.regularMarketChange || null,
+        changePercent: qd.regularMarketChangePercent || r.regularMarketChangePercent || null,
+        dividendYield: qd.trailingAnnualDividendYield ? qd.trailingAnnualDividendYield * 100 : null,
+        isin: r.isin || null,
+      }
+    })
 
     return { results }
   } catch {
