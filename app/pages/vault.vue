@@ -73,6 +73,10 @@
               <span class="w-2 h-2 rounded-full" :class="getConditionColor(item.condition)" />
               {{ getConditionLabel(item.condition) }}
             </div>
+            <!-- Sold badge -->
+            <div v-if="item.sold" class="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/30 backdrop-blur-sm text-[10px] text-green-300 font-medium">
+              <Icon icon="lucide:badge-check" class="w-3 h-3" /> Vendu
+            </div>
           </div>
           <!-- Info -->
           <div class="p-4">

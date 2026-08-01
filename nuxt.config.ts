@@ -24,6 +24,6 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()]
   },
   nitro: {
-    externals: ['bcryptjs', 'jsonwebtoken']
+    preset: 'vercel',
   }
 })

@@ -94,6 +94,10 @@ onMounted(async () => {
     const all = await $fetch('/api/investments', { credentials: 'include' }) as any[]
     stocks.value = all.filter((i: any) => i.category_slug === 'actions-etf')
   } catch {}
-  nextTick(() => { gsap.fromTo(pageRef.value?.children || [], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' }) })
+  await nextTick()
+  // Attendre que le DOM soit stable avant GSAP (évite écran noir sur mobile/PWA)
+  if (pageRef.value?.children?.length) {
+    gsap.fromTo(pageRef.value.children, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' })
+  }
 })
 </script>

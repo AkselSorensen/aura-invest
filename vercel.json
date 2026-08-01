@@ -1,9 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": "npx nuxt build",
-  "outputDirectory": ".output/public",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": "nuxt",
   "env": {
     "NITRO_PRESET": "vercel"
   }
