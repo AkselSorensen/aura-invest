@@ -69,15 +69,15 @@
             </div>
           </div>
 
-          <!-- Quantité, Date, Prix, Valeur -->
-          <div class="grid grid-cols-2 gap-3">
+          <!-- Quantité, Date, Prix, Valeur (cachés si catégorie avec schéma spécifique) -->
+          <div v-if="!activeSchema" class="grid grid-cols-2 gap-3">
             <div><label class="block text-sm text-text-600 mb-1.5">Quantité</label>
               <input v-model.number="form.quantity" type="number" step="any" min="0" class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text focus:outline-none focus:border-gold/40 transition-colors text-sm" /></div>
             <div><label class="block text-sm text-text-600 mb-1.5">Date d'achat</label>
               <input v-model="form.purchase_date" type="date" class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text focus:outline-none focus:border-gold/40 transition-colors text-sm" /></div>
             <div><label class="block text-sm text-text-600 mb-1.5">Prix d'achat (€)</label>
               <input v-model.number="form.purchase_price" type="number" step="any" min="0" placeholder="0" class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text placeholder-text-700 focus:outline-none focus:border-gold/40 transition-colors text-sm" /></div>
-            <div><label class="block text-sm text-text-600 mb-1.5">Valeur actuelle (€)</label>
+            <div><label class="block text-sm text-text-600 mb-1.5">Valeur actuelle (€) <span class="text-text-700">= Qté × Prix</span></label>
               <input v-model.number="form.current_value" type="number" step="any" min="0" placeholder="0" class="w-full bg-surface-600 border border-surface-500 rounded-lg px-4 py-2.5 text-text placeholder-text-700 focus:outline-none focus:border-gold/40 transition-colors text-sm" /></div>
           </div>
 
@@ -285,7 +285,22 @@ async function handleSubmit() {
       imageUrl = uploadRes.url; uploading.value = false
     }
 
-    const payload = { ...form.value, image_url: imageUrl, metadata: metadata.value }
+    // Auto-calculate current_value from schema fields
+    let cv = form.value.current_value
+    if (activeSchema.value) {
+      const slug = activeCategorySlug.value
+      if (slug === 'actions-etf') {
+        cv = (metadata.value.shares || 0) * (metadata.value.avg_cost || 0)
+      } else if (slug === 'crypto') {
+        cv = (metadata.value.amount || 0) * (metadata.value.avg_buy_price || 0)
+      } else {
+        cv = form.value.quantity * form.value.purchase_price
+      }
+    } else {
+      cv = form.value.quantity * form.value.purchase_price
+    }
+
+    const payload = { ...form.value, current_value: cv || form.value.current_value, image_url: imageUrl, metadata: metadata.value }
     const method = props.editData ? 'PUT' : 'POST'
     const url = props.editData ? `/api/investments/${props.editData.id}` : '/api/investments'
     await $fetch(url, { method, body: payload, credentials: 'include' })
