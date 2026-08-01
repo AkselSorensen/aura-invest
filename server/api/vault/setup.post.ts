@@ -11,10 +11,14 @@ export default defineEventHandler(async () => {
     dimensions TEXT DEFAULT '', weight TEXT DEFAULT '', notes TEXT DEFAULT '',
     qr_code_data TEXT DEFAULT '', metadata JSONB DEFAULT '{}',
     sold BOOLEAN DEFAULT false, sold_price NUMERIC, sold_date DATE,
+    insurance_company TEXT DEFAULT '', insurance_policy TEXT DEFAULT '',
+    insurance_expiry DATE, insurance_premium NUMERIC DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())`)
 
   // Add columns to existing tables (ignore errors if already present)
-  for (const col of ['sold BOOLEAN DEFAULT false', 'sold_price NUMERIC', 'sold_date DATE']) {
+  for (const col of ['sold BOOLEAN DEFAULT false', 'sold_price NUMERIC', 'sold_date DATE',
+    'insurance_company TEXT DEFAULT \'\'', 'insurance_policy TEXT DEFAULT \'\'',
+    'insurance_expiry DATE', 'insurance_premium NUMERIC DEFAULT 0']) {
     try { await query(`ALTER TABLE vault_items ADD COLUMN ${col}`) } catch {}
   }
 

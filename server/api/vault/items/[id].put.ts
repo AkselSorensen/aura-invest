@@ -17,6 +17,8 @@ export default defineEventHandler(async (event) => {
     location: 'location', condition: 'condition', serial_number: 'serial_number',
     dimensions: 'dimensions', weight: 'weight', notes: 'notes',
     sold: 'sold', sold_price: 'sold_price', sold_date: 'sold_date',
+    insurance_company: 'insurance_company', insurance_policy: 'insurance_policy',
+    insurance_expiry: 'insurance_expiry', insurance_premium: 'insurance_premium',
   }
 
   for (const [key, col] of Object.entries(map)) {
