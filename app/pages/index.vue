@@ -310,6 +310,14 @@ import { gsap } from 'gsap'
 
 definePageMeta({ layout: false })
 
+useSeoMeta({
+  title: 'Pilotez votre patrimoine',
+  description: 'AuraInvest — La plateforme pour suivre et optimiser vos investissements. Actions, ETF, crypto, immobilier, private equity, objets de collection.',
+  ogTitle: 'AuraInvest — Pilotez votre patrimoine en toute simplicité',
+  ogDescription: 'Suivez vos actions, ETF, private equity, immobilier et objets de collection avec des outils professionnels.',
+  ogImage: '/icons/512.svg',
+})
+
 const heroRef = ref<HTMLElement | null>(null)
 const badgeRef = ref<HTMLElement | null>(null)
 const headlineRef = ref<HTMLElement | null>(null)

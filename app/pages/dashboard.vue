@@ -89,6 +89,12 @@ import { gsap } from 'gsap'
 
 definePageMeta({ middleware: 'auth', layout: false })
 
+useSeoMeta({
+  title: 'Tableau de bord',
+  description: 'Vue d\'ensemble de votre patrimoine — suivez vos performances, votre diversification et vos dividendes.',
+  robots: 'noindex, nofollow',
+})
+
 const pageRef = ref<HTMLElement | null>(null)
 const investments = ref<any[]>([])
 const categories = ref<any[]>([])

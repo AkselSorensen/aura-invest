@@ -62,6 +62,11 @@ import { gsap } from 'gsap'
 
 definePageMeta({ layout: false })
 
+useSeoMeta({
+  title: 'Connexion',
+  description: 'Connectez-vous à AuraInvest pour piloter votre patrimoine en toute simplicité.',
+})
+
 const email = ref('')
 const password = ref('')
 const error = ref('')

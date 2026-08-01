@@ -69,6 +69,11 @@ import { gsap } from 'gsap'
 
 definePageMeta({ layout: false })
 
+useSeoMeta({
+  title: 'Inscription',
+  description: 'Créez votre compte AuraInvest gratuitement et commencez à suivre vos investissements.',
+})
+
 const name = ref('')
 const email = ref('')
 const password = ref('')
