@@ -9,13 +9,18 @@ export default defineEventHandler(async (event) => {
   if (check.rows.length === 0) throw createError({ statusCode: 404, statusMessage: 'Objet non trouvé' })
 
   const formData = await readFormData(event)
-  const files = formData.getAll('files') as File[]
-
-  if (!files || files.length === 0) {
-    const single = formData.get('file') as File
-    if (!single) throw createError({ statusCode: 400, statusMessage: 'Aucun fichier' })
-    files.push(single)
+  
+  // Récupérer les fichiers (supporte 'files' multiple ou 'file' unique)
+  let files: File[] = []
+  const multiFiles = formData.getAll('files')
+  if (multiFiles && multiFiles.length > 0) {
+    files = Array.from(multiFiles).filter((f): f is File => f instanceof File)
+  } else {
+    const single = formData.get('file')
+    if (single instanceof File) files = [single]
   }
+
+  if (files.length === 0) throw createError({ statusCode: 400, statusMessage: 'Aucun fichier' })
 
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
   const { put } = await import('@vercel/blob')
@@ -28,12 +33,16 @@ export default defineEventHandler(async (event) => {
     if (!allowedTypes.includes(file.type)) continue
     if (file.size > 5 * 1024 * 1024) continue
 
-    const blob = await put(`vault/${id}/${Date.now()}-${file.name}`, file, {
-      access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN })
-    const result = await query(
-      'INSERT INTO vault_images (vault_item_id, url, alt, sort_order) VALUES ($1,$2,$3,$4) RETURNING *',
-      [id, blob.url, file.name, sort++])
-    uploaded.push(result.rows[0])
+    try {
+      const blob = await put(`vault/${id}/${Date.now()}-${file.name}`, file, {
+        access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN })
+      const result = await query(
+        'INSERT INTO vault_images (vault_item_id, url, alt, sort_order) VALUES ($1,$2,$3,$4) RETURNING *',
+        [id, blob.url, file.name, sort++])
+      uploaded.push(result.rows[0])
+    } catch (err: any) {
+      console.error('Blob upload failed:', err.message)
+    }
   }
 
   return { success: true, images: uploaded }
