@@ -22,7 +22,7 @@
         </button>
         
         <!-- Profile dropdown -->
-        <div class="relative">
+        <div class="relative profile-dropdown">
           <button @click="showMenu = !showMenu" class="flex items-center gap-2.5 pl-3 border-l border-surface-500 hover:opacity-80 transition-opacity">
             <div class="w-8 h-8 rounded-full bg-gold/15 flex items-center justify-center text-gold text-sm font-semibold">
               <Icon icon="lucide:user" class="w-4 h-4" />
@@ -34,11 +34,11 @@
                 {{ user.role === 'admin' ? 'Admin' : 'Investisseur' }}
               </div>
             </div>
-            <Icon icon="lucide:chevron-down" class="w-3.5 h-3.5 text-text-600 hidden sm:block" />
+            <Icon icon="lucide:chevron-down" class="w-3.5 h-3.5 text-text-600" :class="showMenu ? 'rotate-180' : ''" />
           </button>
           
           <!-- Dropdown -->
-          <div v-if="showMenu" class="absolute right-0 top-full mt-2 w-48 bg-surface-600 border border-surface-500 rounded-lg shadow-xl z-50 py-1" @click="showMenu = false">
+          <div v-if="showMenu" class="absolute right-0 top-full mt-2 w-56 bg-surface-600 border border-surface-500 rounded-lg shadow-xl z-50 py-1" @click.stop>
             <NuxtLink to="/profile" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-text-600 hover:bg-surface-500 hover:text-text transition-colors">
               <Icon icon="lucide:user-circle" class="w-4 h-4" /> Profil investisseur
             </NuxtLink>
@@ -54,9 +54,6 @@
       </div>
     </div>
   </header>
-  
-  <!-- Click outside to close -->
-  <div v-if="showMenu" class="fixed inset-0 z-40" @click="showMenu = false" />
 </template>
 
 <script setup lang="ts">
@@ -91,8 +88,12 @@ async function handleLogout() {
   window.location.href = '/login'
 }
 
-// Close menu on Escape
+// Close menu on click outside or Escape
+function onGlobalClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target.closest('.profile-dropdown')) showMenu.value = false
+}
 function onKeydown(e: KeyboardEvent) { if (e.key === 'Escape') showMenu.value = false }
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+onMounted(() => { document.addEventListener('keydown', onKeydown); document.addEventListener('click', onGlobalClick) })
+onUnmounted(() => { document.removeEventListener('keydown', onKeydown); document.removeEventListener('click', onGlobalClick) })
 </script>
