@@ -255,10 +255,9 @@ function onCategoryChange() {
   const cat = categories.value.find(c => c.id === parseInt(String(form.value.category_id)))
   activeCategorySlug.value = cat?.slug || null
   if (activeCategorySlug.value) {
-    // Merge existing metadata into new defaults
     const defaults = getDefaultMetadata(activeCategorySlug.value)
-    const existing = props.editData?.metadata || {}
-    metadata.value = { ...defaults, ...existing }
+    // Préserver les données déjà saisies (autocomplete, édition...)
+    metadata.value = { ...defaults, ...metadata.value }
   } else {
     metadata.value = {}
   }
