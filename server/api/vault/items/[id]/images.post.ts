@@ -10,7 +10,6 @@ export default defineEventHandler(async (event) => {
 
   const formData = await readFormData(event)
   
-  // Récupérer les fichiers (supporte 'files' multiple ou 'file' unique)
   let files: File[] = []
   const multiFiles = formData.getAll('files')
   if (multiFiles && multiFiles.length > 0) {
@@ -23,7 +22,6 @@ export default defineEventHandler(async (event) => {
   if (files.length === 0) throw createError({ statusCode: 400, statusMessage: 'Aucun fichier' })
 
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-  const { put } = await import('@vercel/blob')
   const uploaded: any[] = []
 
   const maxSort = await query('SELECT COALESCE(MAX(sort_order), -1) as max FROM vault_images WHERE vault_item_id = $1', [id])
@@ -34,14 +32,17 @@ export default defineEventHandler(async (event) => {
     if (file.size > 5 * 1024 * 1024) continue
 
     try {
-      const blob = await put(`vault/${id}/${Date.now()}-${file.name}`, file, {
-        access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN })
+      // Convert file to base64 data URI
+      const buffer = Buffer.from(await file.arrayBuffer())
+      const base64 = buffer.toString('base64')
+      const dataUri = `data:${file.type};base64,${base64}`
+
       const result = await query(
         'INSERT INTO vault_images (vault_item_id, url, alt, sort_order) VALUES ($1,$2,$3,$4) RETURNING *',
-        [id, blob.url, file.name, sort++])
+        [id, dataUri, file.name, sort++])
       uploaded.push(result.rows[0])
     } catch (err: any) {
-      console.error('Blob upload failed:', err.message)
+      console.error('Image upload failed:', err.message)
     }
   }
 
