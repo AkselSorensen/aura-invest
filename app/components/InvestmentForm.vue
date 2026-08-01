@@ -222,6 +222,7 @@ const activeSchema = computed(() => {
 })
 
 function onNameInput() {
+  if (props.editData) return // pas d'autocomplete en mode édition
   const val = form.value.name?.trim()
   if (!val || val.length < 2) { showAutocomplete.value = false; return }
   if (searchTimer) clearTimeout(searchTimer)
