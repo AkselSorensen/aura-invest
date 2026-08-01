@@ -14,7 +14,6 @@
     "@nuxt/nitro-server": "^4.5.1",
     "@pinia/nuxt": "^1.0.1",
     "@tailwindcss/vite": "^4.3.3",
-    "@vercel/blob": "^2.6.1",
     "bcryptjs": "^3.0.3",
     "gsap": "^3.15.0",
     "jsonwebtoken": "^9.0.3",
